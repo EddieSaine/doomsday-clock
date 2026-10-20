@@ -3,222 +3,81 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Economic Risk & Collapse Indicator</title>
+    <title>European Fiscal Stability & Risk Radar</title>
     <style>
         :root {
-            --bg-color: #0f172a;
-            --card-bg: #1e293b;
-            --card-border: #334155;
-            --text-main: #f8fafc;
+            --bg-color: #0b1120;
+            --card-bg: #151f32;
+            --card-border: #233248;
+            --text-main: #f1f5f9;
             --text-muted: #94a3b8;
             --accent-crit: #ef4444;
             --accent-warn: #f59e0b;
+            --accent-notice: #eab308;
             --accent-ok: #10b981;
-            --accent-blue: #3b82f6;
+            --accent-blue: #38bdf8;
         }
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-        }
-
-        body {
-            background-color: var(--bg-color);
-            color: var(--text-main);
-            padding: 20px;
-            display: flex;
-            justify-content: center;
-        }
-
-        .dashboard {
-            max-width: 1100px;
-            width: 100%;
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+        body { background-color: var(--bg-color); color: var(--text-main); padding: 20px; display: flex; justify-content: center; }
+        .dashboard { max-width: 1200px; width: 100%; display: flex; flex-direction: column; gap: 20px; }
 
         header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: var(--card-bg);
-            padding: 20px;
-            border-radius: 12px;
-            border: 1px solid var(--card-border);
-            flex-wrap: wrap;
-            gap: 15px;
+            display: flex; justify-content: space-between; align-items: center;
+            background: var(--card-bg); padding: 20px 25px; border-radius: 14px;
+            border: 1px solid var(--card-border); flex-wrap: wrap; gap: 15px;
         }
-
-        .title-area h1 {
-            font-size: 1.5rem;
-            margin-bottom: 5px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
+        .title-area h1 { font-size: 1.5rem; display: flex; align-items: center; gap: 12px; }
+        
         .toggle-container {
-            display: flex;
-            background: #0f172a;
-            padding: 4px;
-            border-radius: 8px;
-            border: 1px solid var(--card-border);
+            display: flex; background: #0b1120; padding: 4px; border-radius: 8px; border: 1px solid var(--card-border);
         }
-
         .toggle-btn {
-            padding: 8px 16px;
-            border: none;
-            background: transparent;
-            color: var(--text-muted);
-            cursor: pointer;
-            border-radius: 6px;
-            font-weight: 600;
-            transition: all 0.2s;
+            padding: 8px 18px; border: none; background: transparent; color: var(--text-muted);
+            cursor: pointer; border-radius: 6px; font-weight: 600; font-size: 0.85rem; transition: all 0.2s;
         }
+        .toggle-btn.active { background: var(--accent-blue); color: #0b1120; font-weight: 700; }
 
-        .toggle-btn.active {
-            background: var(--accent-blue);
-            color: white;
-        }
+        .main-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        @media (max-width: 900px) { .main-grid { grid-template-columns: 1fr; } }
 
-        .main-grid {
-            display: grid;
-            grid-template-columns: 2fr 1fr;
-            gap: 20px;
-        }
+        .card { background: var(--card-bg); border-radius: 14px; border: 1px solid var(--card-border); padding: 20px; }
 
-        @media (max-width: 850px) {
-            .main-grid {
-                grid-template-columns: 1fr;
-            }
+        /* Europa Map Styling */
+        .map-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        .europe-map { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+        .country-card {
+            background: #0b1120; border: 1px solid var(--card-border); padding: 12px; border-radius: 8px;
+            cursor: pointer; transition: all 0.2s; display: flex; flex-direction: column; gap: 4px;
         }
+        .country-card:hover, .country-card.selected { border-color: var(--accent-blue); transform: translateY(-2px); }
+        .country-card.selected { background: #1a273e; }
+        .country-flag { font-weight: bold; font-size: 1.1rem; }
+        .country-name { font-size: 0.85rem; color: var(--text-muted); }
+        .country-status { font-size: 0.75rem; font-weight: bold; margin-top: 4px; padding: 2px 6px; border-radius: 4px; width: fit-content; }
 
-        .card {
-            background: var(--card-bg);
-            border-radius: 12px;
-            border: 1px solid var(--card-border);
-            padding: 20px;
-        }
+        /* Status Colors */
+        .status-red { background: rgba(239, 68, 68, 0.2); color: var(--accent-crit); border: 1px solid var(--accent-crit); }
+        .status-orange { background: rgba(245, 158, 11, 0.2); color: var(--accent-warn); border: 1px solid var(--accent-warn); }
+        .status-yellow { background: rgba(234, 179, 8, 0.2); color: var(--accent-notice); border: 1px solid var(--accent-notice); }
+        .status-green { background: rgba(16, 185, 129, 0.2); color: var(--accent-ok); border: 1px solid var(--accent-ok); }
 
-        .hero-card {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            text-align: center;
-            position: relative;
-        }
+        /* Hero / Gauge */
+        .hero-card { display: flex; flex-direction: column; align-items: center; text-align: center; }
+        .gauge-box { position: relative; width: 240px; height: 130px; margin-top: 10px; }
+        .gauge-value { position: absolute; bottom: 0; left: 50%; transform: translateX(-50%); font-size: 2.2rem; font-weight: 800; }
 
-        .gauge-box {
-            position: relative;
-            width: 240px;
-            height: 130px;
-            margin-top: 10px;
-        }
+        .prognosis-box { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; width: 100%; margin-top: 15px; }
+        .prog-item { background: #0b1120; padding: 14px; border-radius: 8px; border: 1px solid var(--card-border); text-align: left; }
+        .prog-item .label { font-size: 0.8rem; color: var(--text-muted); }
+        .prog-item .date { font-size: 1.4rem; font-weight: bold; margin-top: 4px; color: var(--accent-warn); }
 
-        canvas {
-            display: block;
-        }
-
-        .gauge-value {
-            position: absolute;
-            bottom: 0;
-            left: 50%;
-            transform: translateX(-50%);
-            font-size: 2rem;
-            font-weight: bold;
-        }
-
-        .prognosis-box {
-            margin-top: 15px;
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-            width: 100%;
-        }
-
-        .prog-item {
-            background: rgba(15, 23, 42, 0.6);
-            padding: 15px;
-            border-radius: 8px;
-            border: 1px solid var(--card-border);
-        }
-
-        .prog-item .label {
-            font-size: 0.85rem;
-            color: var(--text-muted);
-        }
-
-        .prog-item .date {
-            font-size: 1.6rem;
-            font-weight: bold;
-            margin-top: 5px;
-            color: var(--accent-warn);
-        }
-
-        .controls-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-            margin-top: 20px;
-        }
-
-        @media (max-width: 600px) {
-            .controls-grid {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        .control-group {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            background: rgba(15, 23, 42, 0.4);
-            padding: 12px;
-            border-radius: 8px;
-            border: 1px solid var(--card-border);
-        }
-
-        .control-header {
-            display: flex;
-            justify-content: space-between;
-            font-size: 0.9rem;
-        }
-
-        .control-header .val {
-            font-weight: bold;
-            color: var(--accent-blue);
-        }
-
-        input[type=range] {
-            width: 100%;
-            accent-color: var(--accent-blue);
-        }
-
-        .real-data-hint {
-            font-size: 0.75rem;
-            color: var(--text-muted);
-            display: flex;
-            justify-content: space-between;
-        }
-
-        .badge {
-            font-size: 0.75rem;
-            padding: 3px 8px;
-            border-radius: 4px;
-            background: rgba(239, 68, 68, 0.2);
-            color: var(--accent-crit);
-            border: 1px solid var(--accent-crit);
-        }
-
-        footer {
-            text-align: center;
-            font-size: 0.8rem;
-            color: var(--text-muted);
-            padding: 10px;
-        }
+        .controls-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; width: 100%; margin-top: 15px; }
+        .control-group { background: #0b1120; padding: 10px 12px; border-radius: 8px; border: 1px solid var(--card-border); }
+        .control-header { display: flex; justify-content: space-between; font-size: 0.85rem; margin-bottom: 6px; }
+        .control-header .val { font-weight: bold; color: var(--accent-blue); }
+        input[type=range] { width: 100%; accent-color: var(--accent-blue); }
+        .real-hint { font-size: 0.7rem; color: var(--text-muted); display: flex; justify-content: space-between; margin-top: 4px; }
     </style>
 </head>
 <body>
@@ -226,8 +85,8 @@
 <div class="dashboard">
     <header>
         <div class="title-area">
-            <h1 id="main-title">Fiskal-Indikator <span class="badge" id="status-badge">Erhöhtes Risiko</span></h1>
-            <p style="color: var(--text-muted); font-size: 0.9rem;">Echtzeit-Simulation makroökonomischer Parameter (Basis: Deutschland 2026)</p>
+            <h1 id="main-title">Europa Risikoradar <span id="selected-country-badge" class="country-status status-yellow">Deutschland</span></h1>
+            <p style="color: var(--text-muted); font-size: 0.85rem;">Echtzeit-Analyse & Simulation makroökonomischer Stabilität</p>
         </div>
         <div class="toggle-container">
             <button class="toggle-btn active" id="btn-stab" onclick="setMode('stab')">Stabilitäts-Index</button>
@@ -236,61 +95,113 @@
     </header>
 
     <div class="main-grid">
+        <!-- LINKES PANEL: Europa Karte & Länder-Auswahl -->
+        <div class="card">
+            <div class="map-header">
+                <h3>Europa Risikokarte</h3>
+                <span style="font-size: 0.75rem; color: var(--text-muted);">Land anklicken zum Laden</span>
+            </div>
+            
+            <div class="europe-map">
+                <div class="country-card" onclick="selectCountry('IT')">
+                    <span class="country-flag">🇮🇹 IT</span>
+                    <span class="country-name">Italien</span>
+                    <span class="country-status status-red">Akut gefährdet</span>
+                </div>
+                <div class="country-card" onclick="selectCountry('GR')">
+                    <span class="country-flag">🇬🇷 GR</span>
+                    <span class="country-name">Griechenland</span>
+                    <span class="country-status status-red">Akut gefährdet</span>
+                </div>
+                <div class="country-card" onclick="selectCountry('FR')">
+                    <span class="country-flag">🇫🇷 FR</span>
+                    <span class="country-name">Frankreich</span>
+                    <span class="country-status status-orange">Angespannt</span>
+                </div>
+                <div class="country-card" onclick="selectCountry('ES')">
+                    <span class="country-flag">🇪🇸 ES</span>
+                    <span class="country-name">Spanien</span>
+                    <span class="country-status status-orange">Angespannt</span>
+                </div>
+                <div class="country-card selected" id="card-DE" onclick="selectCountry('DE')">
+                    <span class="country-flag">🇩🇪 DE</span>
+                    <span class="country-name">Deutschland</span>
+                    <span class="country-status status-yellow">Unter Druck</span>
+                </div>
+                <div class="country-card" onclick="selectCountry('UK')">
+                    <span class="country-flag">🇬🇧 UK</span>
+                    <span class="country-name">Großbritannien</span>
+                    <span class="country-status status-yellow">Unter Druck</span>
+                </div>
+                <div class="country-card" onclick="selectCountry('CH')">
+                    <span class="country-flag">🇨🇭 CH</span>
+                    <span class="country-name">Schweiz</span>
+                    <span class="country-status status-green">Sehr stabil</span>
+                </div>
+                <div class="country-card" onclick="selectCountry('NO')">
+                    <span class="country-flag">🇳🇴 NO</span>
+                    <span class="country-name">Norwegen</span>
+                    <span class="country-status status-green">Sehr stabil</span>
+                </div>
+            </div>
+
+            <div style="margin-top: 20px; font-size: 0.8rem; color: var(--text-muted); line-height: 1.4; background: #0b1120; padding: 12px; border-radius: 8px; border: 1px solid var(--card-border);">
+                <strong>Klassifizierung:</strong><br>
+                🔴 <strong>Rot:</strong> Hohe Schuldenlast & schwaches Wachstum.<br>
+                🟠 <strong>Orange:</strong> Defizitprobleme & Haushaltsdruck.<br>
+                🟡 <strong>Gelb:</strong> Demografischer Druck & Stagnation.<br>
+                🟢 <strong>Grün:</strong> Hohe Eigenkapitalisierung & geringe Schulden.
+            </div>
+        </div>
+
+        <!-- RECHTES PANEL: Gauge, Prognose & Regler -->
         <div class="card hero-card">
-            <h3 id="hero-title" style="color: var(--text-muted);">Systemische Belastung</h3>
+            <h3 id="hero-title" style="color: var(--text-muted); font-size: 1rem;">Stabilitäts-Score</h3>
+            
             <div class="gauge-box">
                 <canvas id="gaugeCanvas" width="240" height="130"></canvas>
-                <div class="gauge-value" id="gauge-val">68%</div>
+                <div class="gauge-value" id="gauge-val">65%</div>
             </div>
 
             <div class="prognosis-box">
                 <div class="prog-item">
                     <div class="label" id="lbl-crash">Nächster Markt-Crash / Rezession</div>
                     <div class="date" id="date-crash">Q3 2029</div>
-                    <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 4px;">Zyklisches Risiko (3–5 Jahre)</div>
+                    <div style="font-size: 0.7rem; color: var(--text-muted); margin-top: 2px;">Zyklisches Risiko (3–5 J.)</div>
                 </div>
                 <div class="prog-item">
                     <div class="label" id="lbl-system">Kritische Systemgrenze</div>
                     <div class="date" id="date-system" style="color: var(--accent-crit);">2038</div>
-                    <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 4px;">Tragfähigkeit Staatsfinanzen</div>
+                    <div style="font-size: 0.7rem; color: var(--text-muted); margin-top: 2px;">Langfristiger Kollaps-Druck</div>
                 </div>
             </div>
 
-            <div class="controls-grid" style="width: 100%;">
+            <div class="controls-grid">
                 <div class="control-group">
                     <div class="control-header">
-                        <span>Staatsschuldenquote</span>
+                        <span>Staatsschulden</span>
                         <span class="val" id="val-debt">63.8%</span>
                     </div>
-                    <input type="range" id="input-debt" min="40" max="120" value="63.8" step="0.5" oninput="update()">
-                    <div class="real-data-hint">
-                        <span>Basis DE: ~63.8%</span>
-                        <span>Max: 120%</span>
-                    </div>
+                    <input type="range" id="input-debt" min="30" max="160" value="63.8" step="0.5" oninput="update()">
+                    <div class="real-hint"><span>Realdaten</span><span>Spanne: 30-160%</span></div>
                 </div>
 
                 <div class="control-group">
                     <div class="control-header">
-                        <span>EZB Leitzins</span>
+                        <span>Leitzins</span>
                         <span class="val" id="val-rate">2.50%</span>
                     </div>
                     <input type="range" id="input-rate" min="0" max="8" value="2.5" step="0.25" oninput="update()">
-                    <div class="real-data-hint">
-                        <span>Basis DE/EZB: 2.50%</span>
-                        <span>Max: 8.0%</span>
-                    </div>
+                    <div class="real-hint"><span>EZB / SNB</span><span>Max: 8.0%</span></div>
                 </div>
 
                 <div class="control-group">
                     <div class="control-header">
-                        <span>BIP-Wachstum (Real)</span>
+                        <span>BIP-Wachstum</span>
                         <span class="val" id="val-gdp">+0.3%</span>
                     </div>
-                    <input type="range" id="input-gdp" min="-3" max="4" value="0.3" step="0.1" oninput="update()">
-                    <div class="real-data-hint">
-                        <span>Basis DE: +0.3%</span>
-                        <span>Spanne: -3% bis +4%</span>
-                    </div>
+                    <input type="range" id="input-gdp" min="-3" max="5" value="0.3" step="0.1" oninput="update()">
+                    <div class="real-hint"><span>Realwachstum</span><span>-3% bis +5%</span></div>
                 </div>
 
                 <div class="control-group">
@@ -298,49 +209,46 @@
                         <span>Demografie-Druck</span>
                         <span class="val" id="val-demo">72/100</span>
                     </div>
-                    <input type="range" id="input-demo" min="20" max="100" value="72" step="1" oninput="update()">
-                    <div class="real-data-hint">
-                        <span>Basis DE: High (72)</span>
-                        <span>Max: 100</span>
-                    </div>
+                    <input type="range" id="input-demo" min="10" max="100" value="72" step="1" oninput="update()">
+                    <div class="real-hint"><span>Altersstruktur</span><span>Max: 100</span></div>
                 </div>
-            </div>
-        </div>
-
-        <div style="display: flex; flex-direction: column; gap: 20px;">
-            <div class="card">
-                <h4 style="margin-bottom: 10px;">Status-Indikatoren</h4>
-                <div style="display: flex; flex-direction: column; gap: 12px; font-size: 0.9rem;">
-                    <div style="display: flex; justify-content: space-between;">
-                        <span style="color: var(--text-muted);">Zins-BIP-Schere:</span>
-                        <span id="ind-gap" style="font-weight: bold; color: var(--accent-warn);">Kritisch</span>
-                    </div>
-                    <div style="display: flex; justify-content: space-between;">
-                        <span style="color: var(--text-muted);">Rentenlast-Index:</span>
-                        <span style="font-weight: bold; color: var(--accent-crit);">Sehr Hoch</span>
-                    </div>
-                    <div style="display: flex; justify-content: space-between;">
-                        <span style="color: var(--text-muted);">Handelsbilanz:</span>
-                        <span style="font-weight: bold; color: var(--accent-ok);">Positiv</span>
-                    </div>
-                </div>
-            </div>
-
-            <div class="card" style="flex: 1;">
-                <h4 style="margin-bottom: 10px;">Modell-Hinweis</h4>
-                <p style="font-size: 0.8rem; color: var(--text-muted); line-height: 1.4;">
-                    Diese Anwendung kombiniert makroökonomische Indikatoren (Schuldenstand, Zinsumfeld, Wachstum & Altersstruktur) zu einer mathematischen Näherungssimulation.
-                </p>
             </div>
         </div>
     </div>
-
-    <footer>
-        Simulation & Visualisierung | Open Source Portfolio Project
-    </footer>
 </div>
 <script>
-    let currentMode = 'stab'; // 'stab' oder 'col'
+    const countryData = {
+        'IT': { name: 'Italien', debt: 137.0, rate: 2.5, gdp: 0.7, demo: 85, status: 'status-red' },
+        'GR': { name: 'Griechenland', debt: 159.0, rate: 2.5, gdp: 2.1, demo: 80, status: 'status-red' },
+        'FR': { name: 'Frankreich', debt: 110.5, rate: 2.5, gdp: 0.9, demo: 65, status: 'status-orange' },
+        'ES': { name: 'Spanien', debt: 107.0, rate: 2.5, gdp: 2.4, demo: 70, status: 'status-orange' },
+        'DE': { name: 'Deutschland', debt: 63.8, rate: 2.5, gdp: 0.3, demo: 72, status: 'status-yellow' },
+        'UK': { name: 'Großbritannien', debt: 98.0, rate: 4.75, gdp: 1.1, demo: 62, status: 'status-yellow' },
+        'CH': { name: 'Schweiz', debt: 38.0, rate: 1.0, gdp: 1.3, demo: 45, status: 'status-green' },
+        'NO': { name: 'Norwegen', debt: 42.0, rate: 4.5, gdp: 1.5, demo: 40, status: 'status-green' }
+    };
+
+    let currentMode = 'stab'; // 'stab' (Stabilität) oder 'col' (Kollaps)
+    let selectedCountry = 'DE';
+
+    function selectCountry(code) {
+        selectedCountry = code;
+        const data = countryData[code];
+        
+        document.querySelectorAll('.country-card').forEach(c => c.classList.remove('selected'));
+        event.currentTarget.classList.add('selected');
+
+        document.getElementById('input-debt').value = data.debt;
+        document.getElementById('input-rate').value = data.rate;
+        document.getElementById('input-gdp').value = data.gdp;
+        document.getElementById('input-demo').value = data.demo;
+
+        const badge = document.getElementById('selected-country-badge');
+        badge.innerText = data.name;
+        badge.className = `country-status ${data.status}`;
+
+        update();
+    }
 
     function setMode(mode) {
         currentMode = mode;
@@ -348,13 +256,13 @@
         document.getElementById('btn-col').classList.toggle('active', mode === 'col');
 
         if(mode === 'col') {
-            document.getElementById('main-title').childNodes[0].nodeValue = "Doomsday Clock ";
+            document.getElementById('main-title').childNodes[0].nodeValue = "Kollaps-Radar ";
             document.getElementById('hero-title').innerText = "Kollaps-Wahrscheinlichkeit";
             document.getElementById('lbl-crash').innerText = "Nächster Markt-Crash";
-            document.getElementById('lbl-system').innerText = "Geschätzter Kollaps";
+            document.getElementById('lbl-system').innerText = "Geschätzter System-Kollaps";
         } else {
-            document.getElementById('main-title').childNodes[0].nodeValue = "Fiskal-Indikator ";
-            document.getElementById('hero-title').innerText = "Systemische Belastung";
+            document.getElementById('main-title').childNodes[0].nodeValue = "Europa Risikoradar ";
+            document.getElementById('hero-title').innerText = "Stabilitäts-Score";
             document.getElementById('lbl-crash').innerText = "Nächster Markt-Crash / Rezession";
             document.getElementById('lbl-system').innerText = "Kritische Systemgrenze";
         }
@@ -372,29 +280,28 @@
         document.getElementById('val-gdp').innerText = (gdp > 0 ? '+' : '') + gdp.toFixed(1) + '%';
         document.getElementById('val-demo').innerText = demo + '/100';
 
-        // Berechnung Risiko-Score (0 bis 100)
-        let riskScore = (debt * 0.35) + (rate * 5) - (gdp * 8) + (demo * 0.3);
-        riskScore = Math.max(10, Math.min(99, riskScore));
+        // Berechnung
+        let riskFactor = (debt * 0.4) + (rate * 4) - (gdp * 7) + (demo * 0.3);
+        riskFactor = Math.max(10, Math.min(95, riskFactor));
 
-        document.getElementById('gauge-val').innerText = Math.round(riskScore) + '%';
+        let displayScore = currentMode === 'stab' ? Math.round(100 - riskFactor) : Math.round(riskFactor);
+        document.getElementById('gauge-val').innerText = displayScore + '%';
 
-        // Berechnung Crash-Jahr (kurzfristig: 3-5 Jahre)
+        // Prognose Markt-Crash (3-5 Jahre horizon)
         const currentYear = 2026;
-        let crashYears = 5 - ((riskScore - 50) / 20);
-        crashYears = Math.max(1, Math.min(8, crashYears));
-        const crashYearCalculated = currentYear + Math.round(crashYears);
-        document.getElementById('date-crash').innerText = "ca. " + crashYearCalculated;
+        let crashYears = 5.5 - ((riskFactor - 40) / 18);
+        crashYears = Math.max(1, Math.min(7, crashYears));
+        document.getElementById('date-crash').innerText = "ca. " + (currentYear + Math.round(crashYears));
 
-        // Berechnung System-Kollaps (langfristig)
-        let systemYears = 25 - ((riskScore - 40) * 0.3);
+        // Langfristiger Systemkollaps
+        let systemYears = 24 - ((riskFactor - 35) * 0.28);
         systemYears = Math.max(3, Math.min(30, systemYears));
-        const systemYearCalculated = currentYear + Math.round(systemYears);
-        document.getElementById('date-system').innerText = systemYearCalculated;
+        document.getElementById('date-system').innerText = currentYear + Math.round(systemYears);
 
-        drawGauge(riskScore);
+        drawGauge(displayScore, currentMode);
     }
 
-    function drawGauge(score) {
+    function drawGauge(score, mode) {
         const canvas = document.getElementById('gaugeCanvas');
         const ctx = canvas.getContext('2d');
         ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -403,28 +310,31 @@
         const centerY = canvas.height - 10;
         const radius = 90;
 
-        // Hintergrund-Bogen
+        // Bogen Hintergrund
         ctx.beginPath();
         ctx.arc(centerX, centerY, radius, Math.PI, 0, false);
         ctx.lineWidth = 14;
-        ctx.strokeStyle = '#334155';
+        ctx.strokeStyle = '#233248';
         ctx.stroke();
 
-        // Aktiv-Bogen
+        // Bogen Aktiv
         const angle = Math.PI + (score / 100) * Math.PI;
         ctx.beginPath();
         ctx.arc(centerX, centerY, radius, Math.PI, angle, false);
         ctx.lineWidth = 14;
-        
-        let color = '#10b981';
-        if(score > 60) color = '#f59e0b';
-        if(score > 80) color = '#ef4444';
-        
+
+        let color = '#38bdf8';
+        if(mode === 'stab') {
+            color = score > 60 ? '#10b981' : (score > 40 ? '#f59e0b' : '#ef4444');
+        } else {
+            color = score < 40 ? '#10b981' : (score < 70 ? '#f59e0b' : '#ef4444');
+        }
+
         ctx.strokeStyle = color;
         ctx.stroke();
     }
 
-    // Initialer Aufruf
+    // Initialisierung
     update();
 </script>
 </body>
