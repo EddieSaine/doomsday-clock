@@ -1,708 +1,431 @@
 <!DOCTYPE html>
-<html lang="de" class="dark">
+<html lang="de">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Finanzstabilitäts- & Krisen-Simulator Deutschland</title>
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            darkMode: 'class',
-            theme: {
-                extend: {
-                    colors: {
-                        slate: {
-                            850: '#131f37',
-                            900: '#0f172a',
-                            950: '#090d16',
-                        }
-                    }
-                }
+    <title>Economic Risk & Collapse Indicator</title>
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --card-border: #334155;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --accent-crit: #ef4444;
+            --accent-warn: #f59e0b;
+            --accent-ok: #10b981;
+            --accent-blue: #3b82f6;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .dashboard {
+            max-width: 1100px;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px solid var(--card-border);
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .title-area h1 {
+            font-size: 1.5rem;
+            margin-bottom: 5px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .toggle-container {
+            display: flex;
+            background: #0f172a;
+            padding: 4px;
+            border-radius: 8px;
+            border: 1px solid var(--card-border);
+        }
+
+        .toggle-btn {
+            padding: 8px 16px;
+            border: none;
+            background: transparent;
+            color: var(--text-muted);
+            cursor: pointer;
+            border-radius: 6px;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        .toggle-btn.active {
+            background: var(--accent-blue);
+            color: white;
+        }
+
+        .main-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 20px;
+        }
+
+        @media (max-width: 850px) {
+            .main-grid {
+                grid-template-columns: 1fr;
             }
         }
-    </script>
-    <!-- FontAwesome Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap');
-        
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #090d16;
-            color: #f8fafc;
+
+        .card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            border: 1px solid var(--card-border);
+            padding: 20px;
         }
 
-        .font-mono-num {
-            font-family: 'JetBrains Mono', monospace;
+        .hero-card {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            position: relative;
         }
 
-        /* Custom Range Slider Styling */
-        input[type=range] {
-            -webkit-appearance: none;
-            background: transparent;
+        .gauge-box {
+            position: relative;
+            width: 240px;
+            height: 130px;
+            margin-top: 10px;
         }
-        input[type=range]:focus {
-            outline: none;
+
+        canvas {
+            display: block;
         }
-        input[type=range]::-webkit-slider-runnable-track {
+
+        .gauge-value {
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 2rem;
+            font-weight: bold;
+        }
+
+        .prognosis-box {
+            margin-top: 15px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
             width: 100%;
-            height: 6px;
-            cursor: pointer;
-            background: #334155;
+        }
+
+        .prog-item {
+            background: rgba(15, 23, 42, 0.6);
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid var(--card-border);
+        }
+
+        .prog-item .label {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        .prog-item .date {
+            font-size: 1.6rem;
+            font-weight: bold;
+            margin-top: 5px;
+            color: var(--accent-warn);
+        }
+
+        .controls-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        @media (max-width: 600px) {
+            .controls-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            background: rgba(15, 23, 42, 0.4);
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid var(--card-border);
+        }
+
+        .control-header {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.9rem;
+        }
+
+        .control-header .val {
+            font-weight: bold;
+            color: var(--accent-blue);
+        }
+
+        input[type=range] {
+            width: 100%;
+            accent-color: var(--accent-blue);
+        }
+
+        .real-data-hint {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .badge {
+            font-size: 0.75rem;
+            padding: 3px 8px;
             border-radius: 4px;
-        }
-        input[type=range]::-webkit-slider-thumb {
-            height: 18px;
-            width: 18px;
-            border-radius: 50%;
-            background: #38bdf8;
-            cursor: pointer;
-            -webkit-appearance: none;
-            margin-top: -6px;
-            box-shadow: 0 0 10px rgba(56, 189, 248, 0.5);
-            transition: all 0.15s ease;
-        }
-        input[type=range]::-webkit-slider-thumb:hover {
-            transform: scale(1.2);
-        }
-        .mode-kollaps input[type=range]::-webkit-slider-thumb {
-            background: #ef4444;
-            box-shadow: 0 0 10px rgba(239, 68, 68, 0.5);
+            background: rgba(239, 68, 68, 0.2);
+            color: var(--accent-crit);
+            border: 1px solid var(--accent-crit);
         }
 
-        /* Glassmorphism Card Effect */
-        .glass-card {
-            background: rgba(30, 41, 59, 0.7);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.08);
+        footer {
+            text-align: center;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            padding: 10px;
         }
-        .glass-card:hover {
-            border-color: rgba(255, 255, 255, 0.15);
-        }
-
-        /* Mode-based Accent Styles */
-        .theme-accent-text { color: #38bdf8; }
-        .mode-kollaps .theme-accent-text { color: #f87171; }
-
-        .theme-accent-bg { background-color: #38bdf8; }
-        .mode-kollaps .theme-accent-bg { background-color: #ef4444; }
-
-        .theme-accent-border { border-color: #38bdf8; }
-        .mode-kollaps .theme-accent-border { border-color: #ef4444; }
     </style>
 </head>
-<body class="min-h-screen pb-12 transition-colors duration-500">
+<body>
 
-    <!-- Top Navigation Header -->
-    <header class="border-b border-slate-800 bg-slate-900/80 sticky top-0 z-50 backdrop-blur-md">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
-            
-            <!-- Logo / Title -->
-            <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-800 flex items-center justify-center text-white font-bold shadow-lg shadow-indigo-500/20" id="header-icon">
-                    <i class="fa-solid fa-chart-line text-lg"></i>
-                </div>
-                <div>
-                    <h1 class="text-lg font-bold tracking-tight text-white flex items-center gap-2">
-                        <span id="app-title">Finanzstabilitäts-Uhr</span>
-                        <span class="text-xs font-semibold px-2 py-0.5 rounded bg-slate-800 text-slate-400 border border-slate-700">PROTOTYP</span>
-                    </h1>
-                    <p class="text-xs text-slate-400 hidden sm:block">Makroökonomisches Simulations- & Prognosemodell</p>
-                </div>
-            </div>
-
-            <!-- Global Controls: Country Selector & Framing Mode Switcher -->
-            <div class="flex items-center gap-3">
-                
-                <!-- Country Selector -->
-                <div class="relative">
-                    <select id="country-select" onchange="changeCountry()" class="bg-slate-800 text-slate-200 text-xs sm:text-sm font-medium rounded-lg px-3 py-2 border border-slate-700 focus:outline-none focus:ring-2 focus:ring-sky-500 cursor-pointer">
-                        <option value="DE" selected>🇩🇪 Deutschland</option>
-                        <option value="FR">🇫🇷 Frankreich</option>
-                        <option value="US">🇺🇸 USA</option>
-                        <option value="JP">🇯🇵 Japan</option>
-                    </select>
-                </div>
-
-                <!-- Framing Switcher Toggle -->
-                <div class="flex items-center bg-slate-950 p-1 rounded-xl border border-slate-800">
-                    <button id="mode-stabil-btn" onclick="setFramingMode('stabil')" class="px-3 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200 flex items-center gap-1.5 bg-slate-800 text-sky-400 shadow">
-                        <i class="fa-solid fa-shield-halved"></i>
-                        <span class="hidden md:inline">Stabilität</span>
-                    </button>
-                    <button id="mode-kollaps-btn" onclick="setFramingMode('kollaps')" class="px-3 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200 flex items-center gap-1.5 text-slate-400 hover:text-red-400">
-                        <i class="fa-solid fa-triangle-exclamation"></i>
-                        <span class="hidden md:inline">Kollaps-Uhr</span>
-                    </button>
-                </div>
-
-            </div>
+<div class="dashboard">
+    <header>
+        <div class="title-area">
+            <h1 id="main-title">Fiskal-Indikator <span class="badge" id="status-badge">Erhöhtes Risiko</span></h1>
+            <p style="color: var(--text-muted); font-size: 0.9rem;">Echtzeit-Simulation makroökonomischer Parameter (Basis: Deutschland 2026)</p>
+        </div>
+        <div class="toggle-container">
+            <button class="toggle-btn active" id="btn-stab" onclick="setMode('stab')">Stabilitäts-Index</button>
+            <button class="toggle-btn" id="btn-col" onclick="setMode('col')">Kollaps-Prognose</button>
         </div>
     </header>
 
-    <!-- Main Content Container -->
-    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 space-y-6">
-
-        <!-- Status Banner Header -->
-        <div class="flex flex-wrap items-center justify-between gap-4 glass-card p-4 rounded-2xl border-l-4 border-l-sky-500" id="status-card border-left">
-            <div class="flex items-center gap-3">
-                <div class="relative flex h-3.5 w-3.5">
-                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75" id="status-ping"></span>
-                    <span class="relative inline-flex rounded-full h-3.5 w-3.5 bg-amber-500" id="status-dot"></span>
-                </div>
-                <div>
-                    <span class="text-xs uppercase tracking-wider font-semibold text-slate-400 block">Aktuelle Risikostufe</span>
-                    <span class="text-base font-bold text-amber-400" id="status-badge-text">ERHÖHTER DRUCK (Warnstufe Gelb)</span>
-                </div>
+    <div class="main-grid">
+        <div class="card hero-card">
+            <h3 id="hero-title" style="color: var(--text-muted);">Systemische Belastung</h3>
+            <div class="gauge-box">
+                <canvas id="gaugeCanvas" width="240" height="130"></canvas>
+                <div class="gauge-value" id="gauge-val">68%</div>
             </div>
-            
-            <div class="text-xs text-slate-400 flex items-center gap-4">
-                <div><i class="fa-regular fa-clock mr-1"></i> Modellstand: <span class="font-mono-num text-slate-200">2026.Q2</span></div>
-                <div class="hidden sm:block"><i class="fa-solid fa-arrows-rotate mr-1"></i> Interaktive Echteit-Berechnung</div>
-            </div>
-        </div>
 
-        <!-- HERO SECTION: Main Gauge Chart + Forecast Target Date -->
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-            
-            <!-- Left: Hero Risk Gauge & Forecast (8 Cols) -->
-            <div class="lg:col-span-7 glass-card rounded-2xl p-6 flex flex-col justify-between relative overflow-hidden">
-                <div class="flex justify-between items-start mb-4">
-                    <div>
-                        <h2 class="text-sm font-semibold text-slate-400 uppercase tracking-wider" id="hero-title">Gesamtsystem-Druckindex</h2>
-                        <p class="text-2xl font-extrabold text-white mt-1" id="hero-subtitle">Prognose kritischer Schwellenwerte</p>
-                    </div>
-                    <span class="text-xs font-mono bg-slate-800 text-slate-300 px-2.5 py-1 rounded-md border border-slate-700" id="model-code">MODEL v4.2</span>
+            <div class="prognosis-box">
+                <div class="prog-item">
+                    <div class="label" id="lbl-crash">Nächster Markt-Crash / Rezession</div>
+                    <div class="date" id="date-crash">Q3 2029</div>
+                    <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 4px;">Zyklisches Risiko (3–5 Jahre)</div>
                 </div>
-
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 items-center my-4">
-                    
-                    <!-- Circular Arc Gauge Canvas -->
-                    <div class="flex flex-col items-center justify-center relative">
-                        <div class="w-48 h-48 relative flex items-center justify-center">
-                            <canvas id="gaugeCanvas" width="200" height="200" class="w-full h-full"></canvas>
-                            <div class="absolute inset-0 flex flex-col items-center justify-center pt-4">
-                                <span class="text-4xl font-extrabold font-mono-num text-white" id="gauge-score-value">68%</span>
-                                <span class="text-xs font-medium text-slate-400 uppercase tracking-widest mt-0.5" id="gauge-score-label">Systemdruck</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Target Date Display Box -->
-                    <div class="bg-slate-900/90 rounded-xl p-5 border border-slate-800 flex flex-col justify-center">
-                        <span class="text-xs font-medium text-slate-400 uppercase tracking-wider" id="forecast-label">Prognostizierter kritischer Punkt:</span>
-                        
-                        <div class="mt-2 mb-1 flex items-baseline gap-2">
-                            <span class="text-3xl sm:text-4xl font-black font-mono-num tracking-tight text-amber-400" id="forecast-date-display">OKT 2038</span>
-                        </div>
-                        
-                        <div class="text-xs text-slate-300 space-y-1 mt-2 border-t border-slate-800 pt-2">
-                            <div class="flex justify-between">
-                                <span class="text-slate-400">Verbleibende Zeit:</span>
-                                <span class="font-mono-num font-semibold text-white" id="time-remaining-text">12 Jahre, 5 Monate</span>
-                            </div>
-                            <div class="flex justify-between">
-                                <span class="text-slate-400">Veränderung vs. Basis:</span>
-                                <span class="font-mono-num font-medium text-emerald-400" id="delta-text">+1.5 Jahre gewonnen</span>
-                            </div>
-                        </div>
-                    </div>
-
-                </div>
-
-                <!-- Descriptive Footnote -->
-                <div class="bg-slate-900/50 p-3 rounded-lg text-xs text-slate-400 flex items-start gap-2.5 mt-2">
-                    <i class="fa-solid fa-circle-info text-sky-400 mt-0.5 text-sm" id="info-icon"></i>
-                    <p id="hero-description">
-                        Der Index aggregiert Staatsverschuldung, Zins-Steuereinnahmen-Verhältnis, Demografie-Entwicklung und das reale Wirtschaftswachstum. Ein Wert über 80% markiert den mathematischen Beginn unnachhaltiger Refinanzierungsspiralen.
-                    </p>
+                <div class="prog-item">
+                    <div class="label" id="lbl-system">Kritische Systemgrenze</div>
+                    <div class="date" id="date-system" style="color: var(--accent-crit);">2038</div>
+                    <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 4px;">Tragfähigkeit Staatsfinanzen</div>
                 </div>
             </div>
 
-            <!-- Right: Interactive Controls (Sliders) (5 Cols) -->
-            <div class="lg:col-span-5 glass-card rounded-2xl p-6 flex flex-col justify-between">
-                <div>
-                    <div class="flex justify-between items-center mb-4">
-                        <h3 class="text-base font-bold text-white flex items-center gap-2">
-                            <i class="fa-solid fa-sliders text-sky-400" id="slider-header-icon"></i>
-                            Echtzeit-Simulation
-                        </h3>
-                        <button onclick="resetSliders()" class="text-xs text-slate-400 hover:text-white transition-colors underline">
-                            Zurücksetzen
-                        </button>
+            <div class="controls-grid" style="width: 100%;">
+                <div class="control-group">
+                    <div class="control-header">
+                        <span>Staatsschuldenquote</span>
+                        <span class="val" id="val-debt">63.8%</span>
                     </div>
-                    <p class="text-xs text-slate-400 mb-6">Verändere die Parameter, um die Auswirkungen auf das Zieljahr und das Gesamtrisiko direkt zu simulieren.</p>
-
-                    <!-- Sliders Stack -->
-                    <div class="space-y-5">
-                        
-                        <!-- Slider 1: Schuldenquote -->
-                        <div>
-                            <div class="flex justify-between text-xs mb-1.5 font-medium">
-                                <label for="slider-debt" class="text-slate-300">Staatsschulden (% vom BIP)</label>
-                                <span class="font-mono-num text-sky-400 font-bold" id="val-debt">66 %</span>
-                            </div>
-                            <input type="range" id="slider-debt" min="40" max="180" value="66" step="1" oninput="updateSimulation()" class="w-full">
-                            <div class="flex justify-between text-[10px] text-slate-500 mt-0.5 font-mono">
-                                <span>40% (Ziel)</span>
-                                <span>100%</span>
-                                <span>180% (Kritisch)</span>
-                            </div>
-                        </div>
-
-                        <!-- Slider 2: Effektiver Leitzins / Zinslast -->
-                        <div>
-                            <div class="flex justify-between text-xs mb-1.5 font-medium">
-                                <label for="slider-interest" class="text-slate-300">Durchschnittlicher Zinssatz Staatsanleihen</label>
-                                <span class="font-mono-num text-sky-400 font-bold" id="val-interest">2.8 %</span>
-                            </div>
-                            <input type="range" id="slider-interest" min="0.0" max="8.0" value="2.8" step="0.1" oninput="updateSimulation()" class="w-full">
-                            <div class="flex justify-between text-[10px] text-slate-500 mt-0.5 font-mono">
-                                <span>0.0%</span>
-                                <span>4.0%</span>
-                                <span>8.0%</span>
-                            </div>
-                        </div>
-
-                        <!-- Slider 3: Demografie-Quotient -->
-                        <div>
-                            <div class="flex justify-between text-xs mb-1.5 font-medium">
-                                <label for="slider-demo" class="text-slate-300">Demografie (Beitragszahler je Rentner)</label>
-                                <span class="font-mono-num text-sky-400 font-bold" id="val-demo">1.8</span>
-                            </div>
-                            <input type="range" id="slider-demo" min="1.0" max="3.5" value="1.8" step="0.1" oninput="updateSimulation()" class="w-full">
-                            <div class="flex justify-between text-[10px] text-slate-500 mt-0.5 font-mono">
-                                <span>1.0 (Stark gealtert)</span>
-                                <span>2.1 (Aktuell DE)</span>
-                                <span>3.5 (Stabil)</span>
-                            </div>
-                        </div>
-
-                        <!-- Slider 4: BIP Wachstum -->
-                        <div>
-                            <div class="flex justify-between text-xs mb-1.5 font-medium">
-                                <label for="slider-growth" class="text-slate-300">Reales BIP-Wachstum p.a.</label>
-                                <span class="font-mono-num text-sky-400 font-bold" id="val-growth">0.5 %</span>
-                            </div>
-                            <input type="range" id="slider-growth" min="-3.0" max="4.0" value="0.5" step="0.1" oninput="updateSimulation()" class="w-full">
-                            <div class="flex justify-between text-[10px] text-slate-500 mt-0.5 font-mono">
-                                <span>-3.0% (Rezession)</span>
-                                <span>0.5%</span>
-                                <span>+4.0% (Boom)</span>
-                            </div>
-                        </div>
-
+                    <input type="range" id="input-debt" min="40" max="120" value="63.8" step="0.5" oninput="update()">
+                    <div class="real-data-hint">
+                        <span>Basis DE: ~63.8%</span>
+                        <span>Max: 120%</span>
                     </div>
                 </div>
 
-                <div class="mt-4 pt-3 border-t border-slate-800 text-[11px] text-slate-400 flex items-center justify-between">
-                    <span>Sensitivität des Modells: <strong class="text-slate-300">Hoch (Zins-Schulden-Dynamik)</strong></span>
-                </div>
-            </div>
-
-        </div>
-
-        <!-- GRID OF KPI CARDS & MINI-CHARTS (4 COLUMNS) -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
-            
-            <!-- KPI 1: Staatsschulden & Trend -->
-            <div class="glass-card rounded-2xl p-5 flex flex-col justify-between">
-                <div>
-                    <div class="flex justify-between items-start mb-2">
-                        <span class="text-xs font-semibold uppercase text-slate-400">Staatsverschuldung</span>
-                        <span class="text-xs px-2 py-0.5 rounded bg-amber-500/10 text-amber-400 font-medium border border-amber-500/20" id="kpi-1-badge">+2.1% / Jahr</span>
+                <div class="control-group">
+                    <div class="control-header">
+                        <span>EZB Leitzins</span>
+                        <span class="val" id="val-rate">2.50%</span>
                     </div>
-                    <div class="text-2xl font-bold font-mono-num text-white mb-1" id="kpi-1-val">2.560 Mrd. €</div>
-                    <div class="text-xs text-slate-400">Gesamtverschuldung des Bundes</div>
-                </div>
-                <div class="mt-4 h-16 w-full">
-                    <canvas id="chart-debt" class="w-full h-full"></canvas>
-                </div>
-            </div>
-
-            <!-- KPI 2: Rentensystem & Demografie -->
-            <div class="glass-card rounded-2xl p-5 flex flex-col justify-between">
-                <div>
-                    <div class="flex justify-between items-start mb-2">
-                        <span class="text-xs font-semibold uppercase text-slate-400">Rentensystem-Druck</span>
-                        <span class="text-xs px-2 py-0.5 rounded bg-red-500/10 text-red-400 font-medium border border-red-500/20">Kritisch</span>
+                    <input type="range" id="input-rate" min="0" max="8" value="2.5" step="0.25" oninput="update()">
+                    <div class="real-data-hint">
+                        <span>Basis DE/EZB: 2.50%</span>
+                        <span>Max: 8.0%</span>
                     </div>
-                    <div class="text-2xl font-bold font-mono-num text-white mb-1" id="kpi-2-val">127 Mrd. €</div>
-                    <div class="text-xs text-slate-400">Jährlicher Bundeszuschuss zur Rente</div>
                 </div>
-                <div class="mt-4 h-16 w-full">
-                    <canvas id="chart-demo" class="w-full h-full"></canvas>
-                </div>
-            </div>
 
-            <!-- KPI 3: Zinslast vs. Steuereinnahmen -->
-            <div class="glass-card rounded-2xl p-5 flex flex-col justify-between">
-                <div>
-                    <div class="flex justify-between items-start mb-2">
-                        <span class="text-xs font-semibold uppercase text-slate-400">Jährliche Zinslast</span>
-                        <span class="text-xs px-2 py-0.5 rounded bg-sky-500/10 text-sky-400 font-medium border border-sky-500/20" id="kpi-3-badge">8.2% des Haushalts</span>
+                <div class="control-group">
+                    <div class="control-header">
+                        <span>BIP-Wachstum (Real)</span>
+                        <span class="val" id="val-gdp">+0.3%</span>
                     </div>
-                    <div class="text-2xl font-bold font-mono-num text-white mb-1" id="kpi-3-val">37.4 Mrd. €</div>
-                    <div class="text-xs text-slate-400">Aufwand für Zinszahlungen im Haushalt</div>
-                </div>
-                <div class="mt-4 h-16 w-full">
-                    <canvas id="chart-interest" class="w-full h-full"></canvas>
-                </div>
-            </div>
-
-            <!-- KPI 4: Inflation & Kaufkraft -->
-            <div class="glass-card rounded-2xl p-5 flex flex-col justify-between">
-                <div>
-                    <div class="flex justify-between items-start mb-2">
-                        <span class="text-xs font-semibold uppercase text-slate-400">Inflation / VPI</span>
-                        <span class="text-xs px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 font-medium border border-emerald-500/20">Moderat</span>
+                    <input type="range" id="input-gdp" min="-3" max="4" value="0.3" step="0.1" oninput="update()">
+                    <div class="real-data-hint">
+                        <span>Basis DE: +0.3%</span>
+                        <span>Spanne: -3% bis +4%</span>
                     </div>
-                    <div class="text-2xl font-bold font-mono-num text-white mb-1" id="kpi-4-val">2.2 %</div>
-                    <div class="text-xs text-slate-400">Verbraucherpreisindex Vorjahr</div>
                 </div>
-                <div class="mt-4 h-16 w-full">
-                    <canvas id="chart-inflation" class="w-full h-full"></canvas>
-                </div>
-            </div>
 
-        </div>
-
-        <!-- EXPLANATION & METHODOLOGY FOOTER NOTE -->
-        <div class="glass-card rounded-2xl p-6 border border-slate-800">
-            <h4 class="text-sm font-bold text-white mb-2 flex items-center gap-2">
-                <i class="fa-solid fa-calculator text-slate-400"></i>
-                Methodik & Framing-Vergleich
-            </h4>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-xs text-slate-400 leading-relaxed">
-                <div>
-                    <p class="mb-2"><strong class="text-slate-200">Was zeigt das Dashboard?</strong> Dieses Tool berechnet den mathematischen Druck auf den Staatshaushalt. Wenn Zinsausgaben, Rentenzuschüsse und Tilgungen die Steuereinnahmen übersteigen, ohne dass Wirtschaftswachstum den Trend kompensiert, steigt der Risikowerte exponentiell.</p>
-                </div>
-                <div>
-                    <p class="mb-2"><strong class="text-slate-200">Framing-Umschalter:</strong> Wähle oben rechts zwischen <span class="text-sky-400 font-semibold">Stabilitäts-Index</span> (konstruktiver ökonomischer Blickwinkel) und <span class="text-red-400 font-semibold">Kollaps-Prognose</span> (virales/dramatischeres Wording). Beide basieren auf denselben Datenmodellen.</p>
+                <div class="control-group">
+                    <div class="control-header">
+                        <span>Demografie-Druck</span>
+                        <span class="val" id="val-demo">72/100</span>
+                    </div>
+                    <input type="range" id="input-demo" min="20" max="100" value="72" step="1" oninput="update()">
+                    <div class="real-data-hint">
+                        <span>Basis DE: High (72)</span>
+                        <span>Max: 100</span>
+                    </div>
                 </div>
             </div>
         </div>
 
-    </main>
+        <div style="display: flex; flex-direction: column; gap: 20px;">
+            <div class="card">
+                <h4 style="margin-bottom: 10px;">Status-Indikatoren</h4>
+                <div style="display: flex; flex-direction: column; gap: 12px; font-size: 0.9rem;">
+                    <div style="display: flex; justify-content: space-between;">
+                        <span style="color: var(--text-muted);">Zins-BIP-Schere:</span>
+                        <span id="ind-gap" style="font-weight: bold; color: var(--accent-warn);">Kritisch</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between;">
+                        <span style="color: var(--text-muted);">Rentenlast-Index:</span>
+                        <span style="font-weight: bold; color: var(--accent-crit);">Sehr Hoch</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between;">
+                        <span style="color: var(--text-muted);">Handelsbilanz:</span>
+                        <span style="font-weight: bold; color: var(--accent-ok);">Positiv</span>
+                    </div>
+                </div>
+            </div>
 
-    <!-- JAVASCRIPT LOGIC & SIMULATION ENGINE -->
-    <script>
-        // Default Country Datasets
-        const countryData = {
-            DE: {
-                name: "Deutschland",
-                debtRatio: 66,
-                interestRate: 2.8,
-                demoRatio: 1.8,
-                growthRate: 0.5,
-                debtTotal: "2.560 Mrd. €",
-                pensionCost: "127 Mrd. €",
-                interestCost: "37.4 Mrd. €",
-                inflation: "2.2 %"
-            },
-            FR: {
-                name: "Frankreich",
-                debtRatio: 110,
-                interestRate: 3.2,
-                demoRatio: 1.7,
-                growthRate: 0.8,
-                debtTotal: "3.100 Mrd. €",
-                pensionCost: "145 Mrd. €",
-                interestCost: "52.0 Mrd. €",
-                inflation: "2.6 %"
-            },
-            US: {
-                name: "USA",
-                debtRatio: 123,
-                interestRate: 4.2,
-                demoRatio: 2.1,
-                growthRate: 2.1,
-                debtTotal: "$ 34.500 Mrd.",
-                pensionCost: "$ 1.350 Mrd.",
-                interestCost: "$ 870 Mrd.",
-                inflation: "3.1 %"
-            },
-            JP: {
-                name: "Japan",
-                debtRatio: 260,
-                interestRate: 0.9,
-                demoRatio: 1.2,
-                growthRate: 0.3,
-                debtTotal: "¥ 1.280 Trill.",
-                pensionCost: "¥ 55 Trill.",
-                interestCost: "¥ 10 Trill.",
-                inflation: "2.8 %"
-            }
-        };
+            <div class="card" style="flex: 1;">
+                <h4 style="margin-bottom: 10px;">Modell-Hinweis</h4>
+                <p style="font-size: 0.8rem; color: var(--text-muted); line-height: 1.4;">
+                    Diese Anwendung kombiniert makroökonomische Indikatoren (Schuldenstand, Zinsumfeld, Wachstum & Altersstruktur) zu einer mathematischen Näherungssimulation.
+                </p>
+            </div>
+        </div>
+    </div>
 
-        // State Variable
-        let currentFraming = 'stabil'; // 'stabil' or 'kollaps'
-        let selectedCountry = 'DE';
+    <footer>
+        Simulation & Visualisierung | Open Source Portfolio Project
+    </footer>
+</div>
+<script>
+    let currentMode = 'stab'; // 'stab' oder 'col'
 
-        // Base Year for simulation
-        const BASE_YEAR = 2026;
+    function setMode(mode) {
+        currentMode = mode;
+        document.getElementById('btn-stab').classList.toggle('active', mode === 'stab');
+        document.getElementById('btn-col').classList.toggle('active', mode === 'col');
 
-        // Initialize App on DOM Load
-        window.addEventListener('DOMContentLoaded', () => {
-            initSparklines();
-            updateSimulation();
-        });
-
-        // Framing Switcher (Stabilität vs. Kollaps)
-        function setFramingMode(mode) {
-            currentFraming = mode;
-            const body = document.body;
-            const stabilBtn = document.getElementById('mode-stabil-btn');
-            const kollapsBtn = document.getElementById('mode-kollaps-btn');
-
-            if (mode === 'kollaps') {
-                body.classList.add('mode-kollaps');
-                
-                // Active Button styling
-                kollapsBtn.className = "px-3 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200 flex items-center gap-1.5 bg-red-600/20 text-red-400 border border-red-500/30 shadow";
-                stabilBtn.className = "px-3 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200 flex items-center gap-1.5 text-slate-400 hover:text-sky-400";
-
-                // Wording Changes
-                document.getElementById('app-title').innerText = "Finanzkollaps-Prognose";
-                document.getElementById('hero-title').innerText = "System-Kollaps Risiko";
-                document.getElementById('hero-subtitle').innerText = "Geschätzter Zeitpunkt des Finanzkollapses";
-                document.getElementById('gauge-score-label').innerText = "Kollaps-Druck";
-                document.getElementById('forecast-label').innerText = "Mathematischer Kollaps-Zeitpunkt:";
-                document.getElementById('hero-description').innerText = "Der Kollaps-Indikator signalisiert den Zeitpunkt, ab dem die staatliche Zinslast und die Sozialkassen die Steuereinnahmen mathematisch zehren. Ein Wert über 80% markiert den kritischen Kipppunkt.";
-            } else {
-                body.classList.remove('mode-kollaps');
-
-                // Active Button styling
-                stabilBtn.className = "px-3 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200 flex items-center gap-1.5 bg-slate-800 text-sky-400 shadow";
-                kollapsBtn.className = "px-3 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200 flex items-center gap-1.5 text-slate-400 hover:text-red-400";
-
-                // Wording Changes
-                document.getElementById('app-title').innerText = "Finanzstabilitäts-Uhr";
-                document.getElementById('hero-title').innerText = "Gesamtsystem-Druckindex";
-                document.getElementById('hero-subtitle').innerText = "Prognose kritischer Schwellenwerte";
-                document.getElementById('gauge-score-label').innerText = "Systemdruck";
-                document.getElementById('forecast-label').innerText = "Prognostizierter kritischer Schwellenwert:";
-                document.getElementById('hero-description').innerText = "Der Index aggregiert Staatsverschuldung, Zins-Steuereinnahmen-Verhältnis, Demografie-Entwicklung und das reale Wirtschaftswachstum. Ein Wert über 80% markiert den mathematischen Beginn unnachhaltiger Refinanzierungsspiralen.";
-            }
-
-            updateSimulation();
+        if(mode === 'col') {
+            document.getElementById('main-title').childNodes[0].nodeValue = "Doomsday Clock ";
+            document.getElementById('hero-title').innerText = "Kollaps-Wahrscheinlichkeit";
+            document.getElementById('lbl-crash').innerText = "Nächster Markt-Crash";
+            document.getElementById('lbl-system').innerText = "Geschätzter Kollaps";
+        } else {
+            document.getElementById('main-title').childNodes[0].nodeValue = "Fiskal-Indikator ";
+            document.getElementById('hero-title').innerText = "Systemische Belastung";
+            document.getElementById('lbl-crash').innerText = "Nächster Markt-Crash / Rezession";
+            document.getElementById('lbl-system').innerText = "Kritische Systemgrenze";
         }
+        update();
+    }
 
-        // Country Selection Change
-        function changeCountry() {
-            selectedCountry = document.getElementById('country-select').value;
-            const data = countryData[selectedCountry];
+    function update() {
+        const debt = parseFloat(document.getElementById('input-debt').value);
+        const rate = parseFloat(document.getElementById('input-rate').value);
+        const gdp = parseFloat(document.getElementById('input-gdp').value);
+        const demo = parseFloat(document.getElementById('input-demo').value);
 
-            // Update Sliders
-            document.getElementById('slider-debt').value = data.debtRatio;
-            document.getElementById('slider-interest').value = data.interestRate;
-            document.getElementById('slider-demo').value = data.demoRatio;
-            document.getElementById('slider-growth').value = data.growthRate;
+        document.getElementById('val-debt').innerText = debt.toFixed(1) + '%';
+        document.getElementById('val-rate').innerText = rate.toFixed(2) + '%';
+        document.getElementById('val-gdp').innerText = (gdp > 0 ? '+' : '') + gdp.toFixed(1) + '%';
+        document.getElementById('val-demo').innerText = demo + '/100';
 
-            // Update Static KPI Cards
-            document.getElementById('kpi-1-val').innerText = data.debtTotal;
-            document.getElementById('kpi-2-val').innerText = data.pensionCost;
-            document.getElementById('kpi-3-val').innerText = data.interestCost;
-            document.getElementById('kpi-4-val').innerText = data.inflation;
+        // Berechnung Risiko-Score (0 bis 100)
+        let riskScore = (debt * 0.35) + (rate * 5) - (gdp * 8) + (demo * 0.3);
+        riskScore = Math.max(10, Math.min(99, riskScore));
 
-            updateSimulation();
-        }
+        document.getElementById('gauge-val').innerText = Math.round(riskScore) + '%';
 
-        // Reset Sliders to default country values
-        function resetSliders() {
-            changeCountry();
-        }
+        // Berechnung Crash-Jahr (kurzfristig: 3-5 Jahre)
+        const currentYear = 2026;
+        let crashYears = 5 - ((riskScore - 50) / 20);
+        crashYears = Math.max(1, Math.min(8, crashYears));
+        const crashYearCalculated = currentYear + Math.round(crashYears);
+        document.getElementById('date-crash').innerText = "ca. " + crashYearCalculated;
 
-        // Core Calculation Engine
-        function updateSimulation() {
-            // Read slider values
-            const debt = parseFloat(document.getElementById('slider-debt').value);
-            const interest = parseFloat(document.getElementById('slider-interest').value);
-            const demo = parseFloat(document.getElementById('slider-demo').value);
-            const growth = parseFloat(document.getElementById('slider-growth').value);
+        // Berechnung System-Kollaps (langfristig)
+        let systemYears = 25 - ((riskScore - 40) * 0.3);
+        systemYears = Math.max(3, Math.min(30, systemYears));
+        const systemYearCalculated = currentYear + Math.round(systemYears);
+        document.getElementById('date-system').innerText = systemYearCalculated;
 
-            // Display Values
-            document.getElementById('val-debt').innerText = debt + " %";
-            document.getElementById('val-interest').innerText = interest.toFixed(1) + " %";
-            document.getElementById('val-demo').innerText = demo.toFixed(1);
-            document.getElementById('val-growth').innerText = (growth >= 0 ? "+" : "") + growth.toFixed(1) + " %";
+        drawGauge(riskScore);
+    }
 
-            // Calculation Logic for Risk Index Score (0 to 100%)
-            // Base values: Debt 60% = +20, Interest 2.5% = +20, Demo 2.0 = +15, Growth 1.5% = -15
-            let debtPoints = (debt / 180) * 45; 
-            let interestPoints = (interest / 8.0) * 35;
-            let demoPoints = (3.5 - demo) / (3.5 - 1.0) * 30; // lower demo ratio = higher risk
-            let growthDiscount = (growth / 4.0) * 20; // higher growth = lower risk
+    function drawGauge(score) {
+        const canvas = document.getElementById('gaugeCanvas');
+        const ctx = canvas.getContext('2d');
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-            let totalScore = Math.min(99, Math.max(10, Math.round(debtPoints + interestPoints + demoPoints - growthDiscount)));
+        const centerX = canvas.width / 2;
+        const centerY = canvas.height - 10;
+        const radius = 90;
 
-            // Calculate Target Forecast Year
-            // High score -> Target Year is close (e.g., 2028). Low score -> Target Year far (e.g., 2055)
-            let yearsRemaining = Math.max(1.5, Math.round((100 - totalScore) * 0.45));
-            let targetYear = BASE_YEAR + Math.floor(yearsRemaining);
-            let targetMonthIndex = Math.floor((yearsRemaining % 1) * 12);
-            const months = ["JAN", "FEB", "MÄR", "APR", "MAI", "JUN", "JUL", "AUG", "SEP", "OKT", "NOV", "DEZ"];
-            let targetMonth = months[targetMonthIndex];
+        // Hintergrund-Bogen
+        ctx.beginPath();
+        ctx.arc(centerX, centerY, radius, Math.PI, 0, false);
+        ctx.lineWidth = 14;
+        ctx.strokeStyle = '#334155';
+        ctx.stroke();
 
-            // Render Output Displays
-            document.getElementById('gauge-score-value').innerText = totalScore + "%";
-            document.getElementById('forecast-date-display').innerText = `${targetMonth} ${targetYear}`;
-            document.getElementById('time-remaining-text').innerText = `${Math.floor(yearsRemaining)} Jahre, ${Math.round((yearsRemaining % 1) * 12)} Monate`;
+        // Aktiv-Bogen
+        const angle = Math.PI + (score / 100) * Math.PI;
+        ctx.beginPath();
+        ctx.arc(centerX, centerY, radius, Math.PI, angle, false);
+        ctx.lineWidth = 14;
+        
+        let color = '#10b981';
+        if(score > 60) color = '#f59e0b';
+        if(score > 80) color = '#ef4444';
+        
+        ctx.strokeStyle = color;
+        ctx.stroke();
+    }
 
-            // Calculate Delta relative to baseline
-            let baseRemaining = 12.5; // baseline assumption
-            let deltaYears = (yearsRemaining - baseRemaining).toFixed(1);
-            let deltaDisplay = document.getElementById('delta-text');
-            if (deltaYears > 0) {
-                deltaDisplay.innerText = `+${deltaYears} Jahre gewonnen`;
-                deltaDisplay.className = "font-mono-num font-medium text-emerald-400";
-            } else if (deltaYears < 0) {
-                deltaDisplay.innerText = `${deltaYears} Jahre verkürzt`;
-                deltaDisplay.className = "font-mono-num font-medium text-red-400";
-            } else {
-                deltaDisplay.innerText = "Unverändert zum Trend";
-                deltaDisplay.className = "font-mono-num font-medium text-slate-400";
-            }
-
-            // Status Badge Text & Color Updates
-            const badgeText = document.getElementById('status-badge-text');
-            const statusCard = document.getElementById('status-card border-left');
-            const statusDot = document.getElementById('status-dot');
-            const statusPing = document.getElementById('status-ping');
-
-            if (totalScore > 80) {
-                badgeText.innerText = currentFraming === 'kollaps' ? "AKUTE KOLLAPS-GEFAHR (Kritisch)" : "STARK ERHÖHTES RISIKO (Warnstufe Rot)";
-                badgeText.className = "text-base font-bold text-red-400";
-                statusCard.style.borderLeftColor = "#ef4444";
-                statusDot.className = "relative inline-flex rounded-full h-3.5 w-3.5 bg-red-500";
-                statusPing.className = "animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75";
-                document.getElementById('forecast-date-display').className = "text-3xl sm:text-4xl font-black font-mono-num tracking-tight text-red-400";
-            } else if (totalScore > 50) {
-                badgeText.innerText = currentFraming === 'kollaps' ? "KRITISCHER TRAGFÄHIGKEITS-DRUCK" : "ERHÖHTER DRUCK (Warnstufe Gelb)";
-                badgeText.className = "text-base font-bold text-amber-400";
-                statusCard.style.borderLeftColor = "#f59e0b";
-                statusDot.className = "relative inline-flex rounded-full h-3.5 w-3.5 bg-amber-500";
-                statusPing.className = "animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75";
-                document.getElementById('forecast-date-display').className = "text-3xl sm:text-4xl font-black font-mono-num tracking-tight text-amber-400";
-            } else {
-                badgeText.innerText = currentFraming === 'kollaps' ? "STABIL / NIEDRIGE GEFAHR" : "STABIL / NACHHALTIG (Warnstufe Grün)";
-                badgeText.className = "text-base font-bold text-emerald-400";
-                statusCard.style.borderLeftColor = "#10b981";
-                statusDot.className = "relative inline-flex rounded-full h-3.5 w-3.5 bg-emerald-500";
-                statusPing.className = "animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75";
-                document.getElementById('forecast-date-display').className = "text-3xl sm:text-4xl font-black font-mono-num tracking-tight text-emerald-400";
-            }
-
-            // Draw Hero Arc Gauge Chart
-            drawGauge(totalScore);
-        }
-
-        // Draw Custom Arc Gauge Canvas
-        function drawGauge(score) {
-            const canvas = document.getElementById('gaugeCanvas');
-            if (!canvas) return;
-            const ctx = canvas.getContext('2d');
-            const w = canvas.width;
-            const h = canvas.height;
-            const cx = w / 2;
-            const cy = h / 2 + 10;
-            const radius = 75;
-
-            ctx.clearRect(0, 0, w, h);
-
-            // Background Arc Track
-            ctx.beginPath();
-            ctx.arc(cx, cy, radius, Math.PI * 0.8, Math.PI * 2.2, false);
-            ctx.lineWidth = 14;
-            ctx.strokeStyle = '#1e293b';
-            ctx.lineCap = 'round';
-            ctx.stroke();
-
-            // Active Arc Fill
-            let startAngle = Math.PI * 0.8;
-            let endAngle = startAngle + (score / 100) * (Math.PI * 1.4);
-
-            ctx.beginPath();
-            ctx.arc(cx, cy, radius, startAngle, endAngle, false);
-            ctx.lineWidth = 14;
-            
-            // Color Gradient based on mode and score
-            let gradient = ctx.createLinearGradient(0, 0, w, 0);
-            if (currentFraming === 'kollaps') {
-                gradient.addColorStop(0, '#f59e0b');
-                gradient.addColorStop(1, '#ef4444');
-            } else {
-                gradient.addColorStop(0, '#38bdf8');
-                gradient.addColorStop(0.7, '#f59e0b');
-                gradient.addColorStop(1, '#ef4444');
-            }
-            
-            ctx.strokeStyle = gradient;
-            ctx.lineCap = 'round';
-            ctx.stroke();
-        }
-
-        // Draw Decorative Canvas Mini-Sparklines for Cards
-        function initSparklines() {
-            drawSparkline('chart-debt', [50, 52, 55, 60, 62, 64, 66], '#f59e0b');
-            drawSparkline('chart-demo', [80, 75, 70, 64, 58, 52, 45], '#ef4444');
-            drawSparkline('chart-interest', [12, 10, 11, 18, 25, 32, 37], '#38bdf8');
-            drawSparkline('chart-inflation', [1.5, 2.1, 6.9, 5.9, 3.2, 2.2, 2.2], '#10b981');
-        }
-
-        function drawSparkline(canvasId, dataPoints, strokeColor) {
-            const canvas = document.getElementById(canvasId);
-            if (!canvas) return;
-            const ctx = canvas.getContext('2d');
-            
-            // Handle retina scaling
-            const dpr = window.devicePixelRatio || 1;
-            const rect = canvas.getBoundingClientRect();
-            canvas.width = rect.width * dpr;
-            canvas.height = rect.height * dpr;
-            ctx.scale(dpr, dpr);
-
-            const w = rect.width;
-            const h = rect.height;
-
-            ctx.clearRect(0, 0, w, h);
-
-            const min = Math.min(...dataPoints);
-            const max = Math.max(...dataPoints);
-            const padding = 6;
-
-            const stepX = (w - padding * 2) / (dataPoints.length - 1);
-
-            // Draw line
-            ctx.beginPath();
-            dataPoints.forEach((val, i) => {
-                const x = padding + i * stepX;
-                const normalizedY = (val - min) / (max - min || 1);
-                const y = h - padding - (normalizedY * (h - padding * 2));
-                
-                if (i === 0) ctx.moveTo(x, y);
-                else ctx.lineTo(x, y);
-            });
-
-            ctx.strokeStyle = strokeColor;
-            ctx.lineWidth = 2.5;
-            ctx.lineJoin = 'round';
-            ctx.stroke();
-
-            // Draw area fill below line
-            ctx.lineTo(w - padding, h);
-            ctx.lineTo(padding, h);
-            ctx.closePath();
-            ctx.fillStyle = strokeColor + '15'; // 10% opacity fill
-            ctx.fill();
-        }
-
-        // Handle Window Resize for Sparklines
-        window.addEventListener('resize', () => {
-            initSparklines();
-            updateSimulation();
-        });
-    </script>
+    // Initialer Aufruf
+    update();
+</script>
 </body>
 </html>
